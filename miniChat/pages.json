@@ -1,0 +1,132 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/common/login/login",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false
+			}
+
+		},
+
+		{
+			"path": "pages/message/message",
+			"style": {
+				"enablePullDownRefresh": true,
+				"app-plus": {
+					"titleNView": false, //禁用原生导航栏
+					"pullToRefresh": {
+						"style": "circle",
+						"color": "#759BFA",
+						"height": "30px"
+
+					}
+				}
+				// 	"navigationBarTitleText": "消息列表",
+				// 	"enablePullDownRefresh": true,
+				// 	"app-plus": {
+				// 		"titleNView":false,
+				// 		"pullToRefresh": {
+				// 			"style": "circle",
+				// 			"color": "#759BFA",
+				// 			"height": "30px"
+
+				// 		},
+				// 		"titleNView": {
+				// 			"buttons": [ //原生标题栏按钮配置,
+				// 				{
+				// 					"text": "", //原生标题栏增加分享按钮，点击事件可通过页面的 onNavigationBarButtonTap 函数进行监听
+				// 					"float": "left",
+				// 					"fontSize": "20rpx",
+				// 					"fontSrc": "&#xe602;"
+				// 				}, {
+				// 					"text": "加号", //原生标题栏增加分享按钮，点击事件可通过页面的 onNavigationBarButtonTap 函数进行监听
+				// 					"float": "right",
+				// 					"fontSize": "20rpx",
+				// 					"fontSrc": ""
+				// 				}
+
+				// 			]
+				// 		}
+
+				// 	}
+
+
+			}
+
+		},
+
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "uni-app"
+			}
+		}, {
+			"path": "pages/chat/chat",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": true,
+				"app-plus": {
+					"titleNView": false, //禁用原生导航栏
+					"pullToRefresh": {
+						"style": "circle",
+						"color": "#759BFA",
+						"height": "30px"
+
+					}
+				}
+			}
+
+		}, {
+			"path": "pages/chat/video/video",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false,
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+
+				}
+			}
+
+		}
+
+	    ,{
+            "path" : "pages/user-list/user-list",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/create-group/create-group",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/group-detail/group-detail",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"app-plus": {
+					"titleNView": false //禁用原生导航栏
+					
+				}
+            }
+            
+        }
+    ],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"uniIdRouter": {}
+}

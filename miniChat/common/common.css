@@ -1,0 +1,28 @@
+.textB {
+	color: black;
+}
+
+.text-main {
+	color: #00dbff;
+}
+
+.bg-main {
+	background-color: #00dbff;
+}
+
+.bg-dark {
+	background-color: #4d4d4d;
+}
+
+
+.text-secondary {
+	color: #b4b4b4;
+}
+
+.uni-text {
+	font-size: 28rpx;
+}
+
+.bg-chat-item {
+	background-color: #00CFFD;
+}

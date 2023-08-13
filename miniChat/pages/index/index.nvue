@@ -1,0 +1,69 @@
+<template>
+	<view>
+
+		<!-- 聊天区域何还 不过关-->
+<scroll-view scroll-y="true" class="bg-danger position-fixed
+left-0 right-0" style="bottom: 105rpx;"  >
+	<view style="height: 200rpx;" v-for="i in 20" :key="i">
+		<text class="text-white font-lg">{{i}}</text>
+	</view>
+	
+</scroll-view>
+
+		<!-- 底部输入框 -->
+		<view class="position-fixed left-0 right-0  bottom-0  
+		border-top flex align-center" style="height: 105rpx; background-color: #F7F7F6">
+			<free-icon-button>
+				<text class="iconfont font-md">&#xe601;</text>
+			</free-icon-button>
+			<view class="flex-1">
+				<textarea fixed="true" class="bg-white border 
+			  p-2" style="height: 75rpx;"></textarea>
+			</view>
+			<free-icon-button>
+				<text class="iconfont font-md">&#xe601;</text>
+			</free-icon-button>
+			<free-icon-button>
+				<text class="iconfont font-md">&#xe601;</text>
+			</free-icon-button>
+		</view>
+
+
+
+	</view>
+</template>
+
+<script>
+	import freeIconButton from '@/components/free-ui/free-icon-button.vue'
+
+	export default {
+		components: {
+			freeIconButton
+		},
+		data() {
+			return {
+				navBarHeight: 0
+			}
+		},
+		onLoad() {
+
+		},
+		mounted() {
+			// #ifdef APP-PLUS-NVUE
+			var statusBarHeight = plus.navigator.getStatusbarHeight()
+			console.log("导航",statusBarHeight)
+			// #endif
+			this.navBarHeight = this.statusBarHeight
+		
+		
+		
+		},
+		methods: {
+
+		}
+	}
+</script>
+
+<style>
+
+</style>
