@@ -1,0 +1,25 @@
+server:
+  port: 9999
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://47.109.13.100:3306/ddchat_pro?useUnicode=true&useSSL=false&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: 
+    password: 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 1024MB  #文件最大大小
+      max-request-size: 1024MB
+
+# 日志输出
+mybatis-plus:
+  mapper-locations: classpath:/mybatis/*.xml
+  #configuration:
+    #log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+# 文件保存路径
+path:
+  image: /WHC/ddchat/image/
+  video: /WHC/ddchat/video/
+  audio: /WHC/ddchat/audio/
+  file: /WHC/ddchat/file/

@@ -1,0 +1,28 @@
+{
+  "properties": [
+    {
+      "name": "path.image",
+      "type": "java.lang.String",
+      "description": "Description for path.image."
+    },
+    {
+      "name": "path.video",
+      "type": "java.lang.String",
+      "description": "Description for path.video."
+    },
+    {
+      "name": "path.audio",
+      "type": "java.lang.String",
+      "description": "Description for path.audio."
+    },
+    {
+      "name": "path.file",
+      "type": "java.lang.String",
+      "description": "Description for path.file."
+    },
+    {
+      "name": "ip.address",
+      "type": "java.lang.String",
+      "description": "Description for ip.address."
+    }
+  ] }

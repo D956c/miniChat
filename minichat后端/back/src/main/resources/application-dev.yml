@@ -1,0 +1,26 @@
+server:
+  port: 9999
+spring:
+  datasource:
+#    type: com.zaxxer.hikari.HikariDataSource      # 数据源的类型，可以更改为其他的数据源配置，比如druid
+    driver-class-name: com.mysql.jdbc.Driver      # mysql/MariaDB 的数据库驱动类名称192.168.137.228:3306
+    url: jdbc:mysql://localhost:3306/dbchat?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false
+    username: root
+    password: w112112808
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 1024MB  #文件最大大小
+      max-request-size: 1024MB
+
+# 日志输出
+mybatis-plus:
+  mapper-locations: classpath:/mybatis/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+# 文件保存路径
+path:
+  image: S:\ddchat\file\image\
+  video: S:\ddchat\file\video\
+  audio: S:\ddchat\file\audio\
+  file: S:\ddchat\file\file\
