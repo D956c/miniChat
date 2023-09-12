@@ -6,8 +6,7 @@
 			const domModule = weex.requireModule("dom");
 			domModule.addRule('fontFace', {
 				'fontFamily': 'iconfont',
-                                                                //加入自己的阿里巴巴图标库
-				'src': "url('')"
+				'src': "url('https://at.alicdn.com/t/c/font_4108146_cvh4tbap3u8.ttf')"
 			});
 			// #endif
 			

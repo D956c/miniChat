@@ -70,10 +70,11 @@ public class GroupController {
         String avatar = param.get("avatar");
         String introduction = param.get("introduction");
         try {
-            if(name==null||id==null||introduction==null) throw new Exception("信息不完整");
+//            if(name==null||id==null||introduction==null) throw new Exception("信息不完整");
+            if(id==null) throw new Exception("缺少id");
             Group group = groupMapper.selectById(id);
-            group.setName(name);
-            group.setIntroduction(introduction);
+            if(name!=null) group.setName(name);
+            if(introduction!=null) group.setIntroduction(introduction);
             if(avatar!=null) group.setAvatar(avatar);
             groupMapper.updateById(group);
             return new ResponseDto<>(null);

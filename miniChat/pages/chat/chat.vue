@@ -1,16 +1,24 @@
 <template>
 	<view>
 		<!-- 导航栏 -->
-		<free-nav-bar :title="detail.name" :showBack="true"></free-nav-bar>
+		<free-nav-bar :title="detail.name" :showBack="true" :show-right="true">
+			<free-icon-button v-if="detail.chat_type=='group'" slot="right" :icon="'\ue65c'"
+				@click="openChatSet(detail.id,detail.name,detail.avatar)">
+
+			</free-icon-button>
+		</free-nav-bar>
 
 		<!-- 聊天区域何 -->
-		<scroll-view scroll-y="true" class="bg-hover-light position-fixed left-0 right-0 px-3" style="bottom: 105rpx;"
-			:style="chatBodyBottom" :show-scrollbar="false">
+		<scroll-view scroll-y="true" class="bg-hover-light position-fixed left-0 right-0 px-3"
+			style="bottom: 105rpx;box-sizing: border-box;" :style="chatBodyBottom" :show-scrollbar="false"
+			:scroll-into-view="scrollIntoView" :scroll-with-animation="true">
 			<!-- 聊天信息列表 -->
-			<block v-for="(item,index) in list" :key="index">
-				<free-chat-item :item="item" :index="index" :pretime="index>0?list[index-1].createTime:0" @long="long"
-					@preview="previewImage" ref="chatItem"></free-chat-item>
-			</block>
+			<!-- @long="long" -->
+			<view v-for="(item,index) in list" :key="index" :id="'chatItem_'+index">
+				<free-chat-item :item="item" :index="index" :pretime="index>0?list[index-1].createTime:0"
+					@preview="previewImage" ref="chatItem"
+					:shownickname="currentChatItem.shownickname"></free-chat-item>
+			</view>
 		</scroll-view>
 
 		<!-- 点击不属于该区域的位置关闭弹出 -->
@@ -120,6 +128,7 @@
 		},
 		data() {
 			return {
+				scrollIntoView: "",
 				statusBarHeight: 0,
 				navBarHeight: 0,
 				propIndex: -1,
@@ -259,27 +268,41 @@
 					avatar: "",
 					session_id: "",
 					chat_type: "user"
-				}
+				},
+				url: ""
 			}
 		},
 		onLoad(e) {
-			console.log("friend_id,sessionid", e)
-			// 获取好友信息
-			if (!e.friend_id) {
-				uni.navigateBack({
-					delta: 1
-				})
-				return uni.showToast({
-					title: '没有该好友'
-				})
+			if (e.type == 'user') {
+				console.log("friend_id,sessionid", e)
+				// 获取好友信息
+				if (!e.friend_id) {
+					uni.navigateBack({
+						delta: 1
+					})
+					return uni.showToast({
+						title: '没有该好友'
+					})
+				}
+				let friend_id = e.friend_id
+				let chat_type = e.type
+				this.detail.session_id = e.session_id
+				// 好友信息this.detail
+				this.detail.id = friend_id
+				this.detail.chat_type = chat_type
+				this.getFriendInfo(friend_id, chat_type)
+			} else {
+				console.log("群聊的内容", e)
+
+				let data = JSON.parse(e.params)
+				console.log("群聊的内容JSON.parse(e)", data)
+				this.detail.name = data.group_name
+				let chat_type = data.type
+				this.detail.id = data.group_id
+				this.detail.chat_type = chat_type
+				this.detail.avatar = data.avatar
 			}
-			let friend_id = e.friend_id
-			let chat_type = e.type
-			this.detail.session_id = e.session_id
-			// 好友信息this.detail
-			this.detail.id = friend_id
-			this.detail.chat_type = chat_type
-			this.getFriendInfo(friend_id, chat_type)
+
 			// // 创建聊天对象
 			this.chat.createChatObject(this.detail)
 			// 获取历史记录
@@ -287,11 +310,14 @@
 			//console.log("====", list)
 			this.list = list
 			// 监听接收聊天信息
-			uni.$on('onMessage',(message)=>{
+			uni.$on('onMessage', (message) => {
 				console.log("聊天页接收消息", message)
-				if (message.senderId===this.detail.id
-				&&message.chat_type===this.detail.chat_type) {
+				if ((message.senderId === this.detail.id &&
+						message.chat_type === 'user') || (message.chat_type === 'group' && message.receiverId ===
+						this.detail.id)) {
 					this.list.push(message)
+					// 置于底部
+					this.pageToBottom()
 				}
 			})
 
@@ -311,7 +337,7 @@
 			// 摧毁聊天对象
 			this.chat.destoryChatObject()
 			// 摧毁监听接收聊天消息
-			uni.$off('onMessage',()=>{})
+			uni.$off('onMessage', () => {})
 		},
 		mounted() {
 
@@ -328,19 +354,29 @@
 
 
 			});
-			this.$nextTick(() => {
-				this.pageToBottom();
-			});
+			// this.$nextTick(() => {
+			// 	this.pageToBottom();
+			// });
+			this.pageToBottom();
 
 		},
 		computed: {
 			// 聊天对象
 			...mapState({
+				chatList: state => state.user.chatList,
 				chat: state => state.user.chat,
 				user: state => state.user.user,
 			}),
 
-
+			// 当前会话配置信息
+			currentChatItem() {
+				let index = this.chatList.findIndex(item => item.id === this.detail.id && item.chat_type === this.detail
+					.chat_type)
+				if (index !== -1) {
+					return this.chatList[index]
+				}
+				return {}
+			},
 			// 蒙版底部高度
 			maskBottom() {
 				return this.KeyboardHeight + uni.upx2px(105)
@@ -384,7 +420,7 @@
 				let arr = []
 				this.list.forEach((item) => {
 					if (item.type === 'image') {
-						arr.push(item.data)
+						arr.push(item.content)
 					}
 				})
 				return arr
@@ -436,34 +472,72 @@
 			// 发送消息
 			send(type, data = '') {
 				// 组织数据格式
-				//var time = (new Date()).getTime()
+				console.log("消息jjj---------->", type + data)
 				switch (type) {
 					case 'text':
 						data = this.text
 						break;
-						// 	default:
-						// 		obj.data = data
-						// 		break;
+
+					default:
+						data = data
+						break;
 				}
+
+
+
+
+
+				//var time = (new Date()).getTime()
+
 				//this.chat.formatSendData(params)
 				// 渲染到页面
 
 				// 发送到服务端
+				// let m = {
+				// 	senderId: this.user.id,
+				// 	senderAvatar: this.user.avatar,
+				// 	senderName: this.user.nickname,
+				// 	receiverId: this.detail.id,
+				// 	receiverAvatar: this.detail.avatar,
+				// 	receiverName: this.detail.name,
+				// 	sendTime: time.getFormatTime(new Date()),
+				// 	createTime: (new Date()).getTime(),
+				// 	content: this.text,
+				// 	sendStatus: "",
+				// 	chat_type: this.detail.chat_type,
+				// 	messageType: type,
+				// 	sessionId: this.detail.session_id
+				// }
+				// console.log("外部的url", this.url)
+				let chat_type = this.detail.chat_type
+
 				let m = {
 					senderId: this.user.id,
 					senderAvatar: this.user.avatar,
 					senderName: this.user.nickname,
-					receiverId: this.detail.id,
-					receiverAvatar: this.detail.avatar,
-					receiverName: this.detail.name,
 					sendTime: time.getFormatTime(new Date()),
 					createTime: (new Date()).getTime(),
-					content: this.text,
+					content: data,
 					sendStatus: "",
-					chat_type: this.detail.chat_type,
+					chat_type: chat_type,
 					messageType: type,
 					sessionId: this.detail.session_id
+				};
+
+				if (chat_type === 'user') {
+					m.receiverId = this.detail.id;
+					m.receiverAvatar = this.detail.avatar;
+					m.receiverName = this.detail.name;
+				} else if (chat_type === 'group') {
+					m.receiverId = this.detail.id;
+					m.receiverAvatar = this.detail.avatar;
+					m.receiverName = this.detail.name;
 				}
+
+
+
+
+
 				// 添加消息历史记录
 				let {
 					k
@@ -480,7 +554,7 @@
 				//console.log("updateChatDetail的k",k)
 				this.chat.updateChatDetail(m, k)
 				let msg = {
-					type: 'person-message',
+					type: this.detail.chat_type === 'user' ? 'person-message' : 'group-message',
 					data: m
 				}
 				console.log("发送的---msg", msg)
@@ -549,8 +623,8 @@
 				// if (type === 'text') {
 				// 	this.text = ''
 				// }
-				// // 置于底部
-				// this.pageToBottom()
+				// 置于底部
+				this.pageToBottom()
 			},
 			// 长按消息气泡
 			long({
@@ -563,19 +637,93 @@
 
 				this.$refs.extend.show(x, y)
 			},
+
+
+			uploadImage(data) {
+				return new Promise((resolve, reject) => {
+					uni.uploadFile({
+						url: 'http://localhost:9999/ddchat/image/upload',
+						filePath: data,
+						name: 'image',
+						success: res => {
+
+							let response = JSON.parse(res.data)
+							console.log("上传的图片", response)
+							let url = 'http://localhost:9999/' + response.data.url
+							//console.log("fason__________", url)
+							resolve(url) // 传递data给下一步操作
+						},
+						fail: err => {
+
+							uni.showToast({
+								icon: 'error',
+								title: '发生了错误'
+							})
+							//console.log('请求失败__________', err);
+							reject(err) // 抛出错误
+						}
+					});
+				});
+			},
+			
+			uploadVideo(data) {
+				return new Promise((resolve, reject) => {
+					uni.uploadFile({
+						url: 'http://localhost:9999/ddchat/video/upload',
+						filePath: data,
+						name: 'video',
+						success: res => {
+			
+							let response = JSON.parse(res.data)
+							console.log("上传的视频", response)
+							let url = 'http://localhost:9999/' + response.data.url
+							//console.log("fason__________", url)
+							resolve(url) // 传递data给下一步操作
+						},
+						fail: err => {
+			
+							uni.showToast({
+								icon: 'error',
+								title: '发生了错误'
+							})
+							//console.log('请求失败__________', err);
+							reject(err) // 抛出错误
+						}
+					});
+				});
+			},
+
+
 			// 回到底部
 			pageToBottom() {
 				setTimeout(() => {
 					// #ifdef APP-PLUS-NVUE
 					let chatItem = this.$refs.chatItem
-
-					let lastIndex = chatItem.length > 0 ? chatItem.length - 1 : 0
-					// console.log("lastIndex", lastIndex)
-					if (chatItem[lastIndex]) {
-						dom.scrollToElement(chatItem[lastIndex], {})
+					if (chatItem) {
+						let lastIndex = chatItem.length > 0 ? chatItem.length - 1 : 0
+						if (chatItem[lastIndex]) {
+							dom.scrollToElement(chatItem[lastIndex], {})
+						}
 					}
-
 					// #endif
+					// #ifndef APP-NVUE
+					let lastIndex = this.list.length - 1
+					this.scrollIntoView = 'chatItem_' + lastIndex
+					// #endif
+					// // #ifdef APP-PLUS-NVUE
+					// let chatItem = this.$refs.chatItem
+
+					// let lastIndex = chatItem.length > 0 ? chatItem.length - 1 : 0
+					// // console.log("lastIndex", lastIndex)
+					// if (chatItem[lastIndex]) {
+					// 	dom.scrollToElement(chatItem[lastIndex], {})
+					// }
+
+					// // #endif
+					// // #ifndef APP-NVUE
+					// let lastIndex=this.list.length-1
+					// this.scrollIntoView='chatItem_'+lastIndex
+					// // #endif
 				}, 310);
 
 			},
@@ -590,10 +738,18 @@
 							count: 5,
 							success: (res) => {
 								// 发送后端接口
-								// 渲染到页面
 								res.tempFilePaths.forEach((item) => {
-									this.send('image', item)
+									this.uploadImage(item).then(resout => {
+											this.send('image', resout)
+									})
+
 								})
+
+
+								// 渲染到页面
+								// res.tempFilePaths.forEach((item) => {
+								// 	this.send('image', item)
+								// })
 							}
 						})
 						break;
@@ -601,8 +757,11 @@
 						uni.chooseVideo({
 							maxDuration: 10,
 							success: (res) => {
+								this.uploadVideo(res.tempFilePath).then(resout => {
+										this.send('video', resout)
+								})
 								// 渲染页面
-								this.send('video', res.tempFilePath)
+								//this.send('video', res.tempFilePath)
 								// 发送到服务端（获取封面，返回url）
 								// 修改本地的发送状态
 							}
@@ -618,10 +777,26 @@
 			},
 			// 点击预览图片
 			previewImage(url) {
+				console.log("点击放大的图片地址",url)
 				uni.previewImage({
 					current: url,
 					urls: this.imageList
 				})
+			},
+			// 打开群组聊天设置
+			openChatSet(groupId, groupName, groupAvatar) {
+				// uni.navigateTo({
+				// 	url:"/pages/chat/groupchat-set/groupchat-set"
+				// })
+				uni.navigateTo({
+					url: '/pages/chat/groupchat-set/groupchat-set?params=' + encodeURIComponent(
+						JSON.stringify({
+							group_id: groupId,
+							group_name: groupName,
+							group_avatar: groupAvatar,
+						}))
+				})
+
 			}
 
 		}

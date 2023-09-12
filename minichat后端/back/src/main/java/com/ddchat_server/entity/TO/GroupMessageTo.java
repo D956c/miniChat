@@ -18,6 +18,7 @@ public class GroupMessageTo extends BaseEntity{
     private String senderAvatar;
     private String receiverId; //接收者id
     private String receiverName;
+    private String receiverAvatar;
     //private String senderName;
     private String sendTime;  //发送时间
     private String content;  //发送内容

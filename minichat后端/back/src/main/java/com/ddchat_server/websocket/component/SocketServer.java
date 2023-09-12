@@ -5,6 +5,7 @@ import cn.hutool.json.JSONUtil;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.ddchat_server.entity.*;
+import com.ddchat_server.entity.TO.GroupMessageTo;
 import com.ddchat_server.entity.TO.MessageTo;
 import com.ddchat_server.mapper.*;
 import com.ddchat_server.service.FriendService;
@@ -36,7 +37,7 @@ public class SocketServer {
     public static FriendService friendService;
     public static MessageService messageService;
     public static MemberMapper memberMapper;
-    public static GroupMapper groupMapper ;
+    public static GroupMapper groupMapper;
 
     @Autowired
     public void setMemberMapper(MemberMapper memberMapper) {
@@ -151,23 +152,25 @@ public class SocketServer {
                 break;
             case "person-message":
                 ///////构造消息
+                System.out.println("person-message----@@@@@@@@---" + data);
                 Message message1 = new Message(SnowFlakeUtil.getSnowFlakeId().toString(), data.getStr("sessionId"),
                         data.getStr("senderId"),
                         data.getStr("receiverId"), data.getStr("sendTime"), data.getStr("content"), data.getStr("messageType"),
                         0);
                 messageService.storeMessage(message1);
-                MessageTo messageTo = new MessageTo(message1.getId(),data.getStr("chat_type"), data.getStr("sessionId"),
-                        data.getStr("senderId"),data.getStr("senderName"),data.getStr("senderAvatar"),
-                        data.getStr("receiverId"),data.getStr("receiverName"), data.getStr("sendTime"), data.getStr("content"),  data.getStr("messageType"),0);
+                MessageTo messageTo = new MessageTo(message1.getId(), data.getStr("chat_type"), data.getStr("sessionId"),
+                        data.getStr("senderId"), data.getStr("senderName"), data.getStr("senderAvatar"),
+                        data.getStr("receiverId"), data.getStr("receiverName"), data.getStr("sendTime"), data.getStr("content"), data.getStr("messageType"), 0);
                 //System.out.println("--------个人消息",message1.);
                 //this.sendToUserById(message1.getSenderId(),new SocketMessage<>("person-message",message1));
                 this.sendToUserById(message1.getReceiverId(), new SocketMessage<>("person-message", messageTo));
                 break;
             case "join-group":
                 //////先检查该用户是否在群里
+                System.out.println("join-group-------" + data);
                 String userId = data.getStr("userId");
                 String groupId = data.getStr("groupId");
-
+                String Inviter = data.getStr("Inviter");
                 QueryWrapper<Member> queryWrapper = new QueryWrapper<>();
                 queryWrapper.eq("member_id", userId).eq("group_id", groupId).eq("is_deleted", false);
                 List<Member> members = memberMapper.selectList(queryWrapper);
@@ -178,24 +181,71 @@ public class SocketServer {
                     return;
                 }
                 ////创建关系
-                Member member = new Member(null, Long.parseLong(userId), groupId, 0, "", false);
+                Member member = new Member(null, Long.parseLong(userId), groupId, 0, Inviter + "邀请你进入群聊", false);
                 memberMapper.insert(member);
-                this.sendToUserById(member.getMemberId().toString(), new SocketMessage<>("join-success", member));
+
+                GroupMessageTo groupjoinmsg = new GroupMessageTo(null, data.getStr("chat_type"), data.getStr("sessionId"),
+                        data.getStr("senderId"), data.getStr("senderName"), data.getStr("senderAvatar"),
+                        data.getStr("receiverId"), data.getStr("receiverName"), data.getStr("receiverAvatar"), data.getStr("sendTime"), Inviter + "邀请你进入群聊", data.getStr("messageType"), 0);
+                //System.out.println("--------个人消息",message1.);
+
+                this.sendToUserById(member.getMemberId().toString(), new SocketMessage<>("join-success", groupjoinmsg));
+                break;
+            case "change-group":
+                ///查找该群的全部用户group_id
+                System.out.println("group-change------++++++++=" + data);
+                String groupID = data.getStr("groupId");
+                QueryWrapper<Member> memberQueryWrapperc = new QueryWrapper<>();
+                memberQueryWrapperc.eq("is_deleted", false).eq("group_id", groupID);
+                memberQueryWrapperc.select("member_id");
+                ////保存聊天记录
+                GroupMessage groupMessagec = new GroupMessage(SnowFlakeUtil.getSnowFlakeId().toString(), groupID, data.getStr("senderId"), data.getStr("senderName"),
+                        data.getStr("senderAvatar"), data.getStr("sendTime"), data.getStr("content"), data.getStr("messageType"), 0);
+                messageService.StoreGroupMessage(groupMessagec);
+                GroupMessageTo groupMessageToc = new GroupMessageTo(groupMessagec.getId(), data.getStr("chat_type"), data.getStr("sessionId"),
+                        data.getStr("senderId"), data.getStr("senderName"), data.getStr("senderAvatar"),
+                        data.getStr("receiverId"), data.getStr("receiverName"), data.getStr("receiverAvatar"), data.getStr("sendTime"), "群名修改为"+data.getStr("receiverName"), data.getStr("messageType"), 0);
+                //System.out.println("--------个人消息",message1.);
+                List<Object> allid = memberMapper.selectObjs(memberQueryWrapperc);
+                for (Object id : allid) {
+                    ////发送给每一个人
+                    this.sendToUserById(id.toString(), new SocketMessage<>("group-message", groupMessageToc));
+                }
+
                 break;
             case "group-message":
-                ///查找该群的全部用户
-                String group_id = data.getStr("groupId");
+                ///查找该群的全部用户group_id
+                System.out.println("group-message---------》" + data);
+                String group_id = data.getStr("receiverId");
                 QueryWrapper<Member> memberQueryWrapper = new QueryWrapper<>();
                 memberQueryWrapper.eq("is_deleted", false).eq("group_id", group_id);
                 memberQueryWrapper.select("member_id");
                 ////保存聊天记录
                 GroupMessage groupMessage = new GroupMessage(SnowFlakeUtil.getSnowFlakeId().toString(), group_id, data.getStr("senderId"), data.getStr("senderName"),
-                        data.getStr("avatar"), data.getStr("sendTime"), data.getStr("content"), data.getStr("messageType"), 0);
+                        data.getStr("senderAvatar"), data.getStr("sendTime"), data.getStr("content"), data.getStr("messageType"), 0);
                 messageService.StoreGroupMessage(groupMessage);
+
+
+                GroupMessageTo groupMessageTo = new GroupMessageTo(groupMessage.getId(), data.getStr("chat_type"), data.getStr("sessionId"),
+                        data.getStr("senderId"), data.getStr("senderName"), data.getStr("senderAvatar"),
+                        data.getStr("receiverId"), data.getStr("receiverName"), data.getStr("receiverAvatar"), data.getStr("sendTime"), data.getStr("content"), data.getStr("messageType"), 0);
+                //System.out.println("--------个人消息",message1.);
+
+
                 List<Object> ids = memberMapper.selectObjs(memberQueryWrapper);
                 for (Object id : ids) {
+                    System.out.println("id的值" + id);
+                    String idnum = id.toString();
+                    String senderId = groupMessageTo.getSenderId();
+                    System.out.println("z值得判断======" + (idnum.equals(senderId)));
+                    //System.out.println("这个判断是==========="+(id.equals(groupMessageTo.getSenderId())));
+                    if (!idnum.equals(senderId)) {
+
+                        this.sendToUserById(id.toString(), new SocketMessage<>("group-message", groupMessageTo));
+
+                    }
+                    // System.out.println(groupMessageTo.getSenderId());
                     ////发送给每一个人
-                    this.sendToUserById(id.toString(), new SocketMessage<>("group-message", groupMessage));
                 }
                 break;
             ///收到了撤回消息

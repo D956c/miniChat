@@ -1,3 +1,18 @@
+/* 1. 页面背景色 */
+.page{
+	/* background-color: #EDEDED; */
+	
+	background-color: #f6f3f3;
+	/* #ifndef APP-PLUS-NVUE */
+	min-height: 100vh;
+	height: auto;
+	/* #endif */
+	/* #ifdef APP-PLUS-NVUE */
+	flex: 1;
+	/* #endif */
+}
+
+
 .textB {
 	color: black;
 }

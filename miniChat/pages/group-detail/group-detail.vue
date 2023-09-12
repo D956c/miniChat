@@ -22,7 +22,7 @@
 		</view>
 		<view class="flex" style="position: fixed; bottom: 20rpx;width: 100%;">
 			<view class="rounded-circle p-3 flex align-center justify-center flex-1 bg-chat-item m-3"
-				@click="createGroup">
+				@click="openChat(groupName,groupId,avatar)">
 				<text class="text-white font-md">进入星群</text>
 			</view>
 		</view>
@@ -34,6 +34,7 @@
 
 <script>
 	import freeTransparentBar from '@/components/free-ui/free-transparent-bar.vue';
+	import $H from '@/common/request.js';
 	export default {
 		components: {
 			freeTransparentBar
@@ -44,13 +45,15 @@
 				groupName: "",
 				avatar: "",
 				isFromIndex: false,
+				groupId: ""
 			}
 		},
 		onLoad(e) {
 			console.log("====groupdetail", e)
 			this.getGroupDetail(e.groupId)
-			const pages = getCurrentPages();
-			const prevPage = pages[pages.length - 2]; // 获取上一页
+			this.groupId = e.groupId
+			const pages = getCurrentPages()
+			const prevPage = pages[pages.length - 2] // 获取上一页
 			if (prevPage && prevPage.route === 'pages/create-group/create-group') {
 				// 从create-group进入该页面
 				this.isFromIndex = true;
@@ -61,28 +64,61 @@
 		},
 		methods: {
 			getGroupDetail(groupId) {
-				uni.request({
-					url: 'http://localhost:9999/ddchat/group/info',
-					method: 'POST',
-					header: {
-						'Content-Type': 'application/json'
-					},
-					data: {
-						id: groupId,
-					},
-					success: (res) => {
-						console.log('获取成功到群组信息', res.data);
-						// 处理返回的数据
-						this.groupName = res.data.data.name
-						this.avatar = res.data.data.avatar
-						this.groupDescribe = res.data.data.introduction
-					},
-					fail: (err) => {
-						console.error('请求失败', err);
-					}
+				$H.post('/ddchat/group/info', {
+					id: groupId
+				}).then(res => {
+					console.log('获取成功到群组信息', res);
+					// 处理返回的数据
+					this.groupName = res.name
+					this.avatar = res.avatar
+					this.groupDescribe = res.introduction
+				})
+				// uni.request({
+				// 	url: 'http://localhost:9999/ddchat/group/info',
+				// 	method: 'POST',
+				// 	header: {
+				// 		'Content-Type': 'application/json'
+				// 	},
+				// 	data: {
+				// 		id: groupId,
+				// 	},
+				// 	success: (res) => {
+				// 		console.log('获取成功到群组信息', res.data);
+				// 		// 处理返回的数据
+				// 		this.groupName = res.data.data.name
+				// 		this.avatar = res.data.data.avatar
+				// 		this.groupDescribe = res.data.data.introduction
+				// 	},
+				// 	fail: (err) => {
+				// 		console.error('请求失败', err);
+				// 	}
 
-				});
+				// });
 
+			},
+
+			// 携带个人信息打开群聊天
+			openChat(groupName, groupId, avatar) {
+
+
+				// url: '/pages/chat/chat/chat?params='+encodeURIComponent(JSON.stringify({
+				// id:item.id,
+				// name:item.name,
+				// avatar:item.avatar,
+				// chat_type:"group"
+
+				uni.navigateTo({
+					// 	url: '/pages/chat/chat?group_id=' + groupId + '&group_name=' + groupName + '&type=group',
+					url: '/pages/chat/chat?params=' + encodeURIComponent(JSON.stringify({
+						group_id: groupId,
+						group_name: groupName,
+						avatar: avatar,
+						type: 'group'
+
+
+					}))
+
+				})
 			}
 		}
 	}

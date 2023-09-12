@@ -24,18 +24,17 @@
 					</slot>
 				</view>
 				<!-- 右边 -->
-				<!-- 		<view class="flex align-center" v-if="showRight">
+				<view class="flex align-center" v-if="showRight">
 					<slot name="right">
-						<free-icon-button @click="search" 
-						:icon="'\ue6e3'"></free-icon-button>
-						<free-icon-button @click="openExtend"
-						:icon="'\ue682'"></free-icon-button>
+					
+						<!-- <free-icon-button @click="search" :icon="'\ue6e3'"></free-icon-button>
+						<free-icon-button @click="openExtend" :icon="'\ue682'"></free-icon-button> -->
 					</slot>
-				</view> -->
+				</view>
 			</view>
 		</view>
 		<!-- 占位 -->
-		<view v-if="fixed" :style="fixedStyle"></view>
+	<!-- 	<view v-if="fixed" :style="fixedStyle"></view> -->
 
 		<!-- 扩展菜单 -->
 
@@ -76,7 +75,7 @@
 			},
 			showRight: {
 				type: Boolean,
-				default: true
+				default: false
 			}
 		},
 		components: {

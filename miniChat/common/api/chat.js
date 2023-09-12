@@ -126,6 +126,7 @@ class chat {
 	createChatObject(detail) {
 		this.TO = detail
 		console.log("创建聊天对象", this.TO)
+		console.log("创建聊天对象的id", this.TO.id)
 	}
 
 	// 组织发送信息格式
@@ -181,7 +182,8 @@ class chat {
 		console.log("添加聊天记录", message)
 		// 获取对方id
 		// console.log("this.user",this.user)
-		let id = isSend ? message.receiverId : message.senderId
+		let id = message.chat_type === 'user' ? (isSend ? message.receiverId : message.senderId) : message
+			.receiverId
 		let key = `chatDetail_${this.user.id}_${message.chat_type}_${id}`
 		// 获取原来的聊天记录
 		let list = this.getChatDetail(key)
@@ -203,10 +205,11 @@ class chat {
 	async updateChatDetail(message, k, isSend = true) {
 		console.log("updateChatDetail更新指定历史记录", message)
 		// 获取对方id
-		let id = isSend ? message.receiverId : message.senderId
+		let id = message.chat_type === 'user' ? (isSend ? message.receiverId : message.senderId) : message
+			.receiverId
 		// key值：chatDetail_当前用户id_会话类型_接收人/群id
 		let key = `chatDetail_${this.user.id}_${message.chat_type}_${id}`
-		//console.log('新指定历史记录key值',key)
+		console.log('新指定历史记录key值', key)
 		// 获取原来的聊天记录
 		let list = this.getChatDetail(key)
 		//console.log('获取原来的聊天记录',list)
@@ -224,11 +227,39 @@ class chat {
 	// 获取聊天记录
 	getChatDetail(key = false) {
 		console.log("keyTO", this.TO)
+		console.log("keyTO", this.TO.id)
 		console.log("keychat_type", this.TO.chat_type)
 		key = key ? key : `chatDetail_${this.user.id}_${this.TO.chat_type}_${this.TO.id}`
 		console.log("key", key)
 		return this.getStorage(key)
 	}
+	
+	// 格式化会话最后一条消息显示
+		formatChatItemData(message,isSend){
+			let content = message.content
+			switch (message.messageType){
+				case 'emoji':
+				content = '[表情]'
+					break;
+				case 'image':
+				content = '[图片]'
+					break;
+				case 'audio':
+				content = '[语音]'
+					break;
+				case 'video':
+				content = '[视频]'
+					break;
+				case 'card':
+				content = '[名片]'
+					break;
+			}
+			content = isSend ? content : `${message.senderName}: ${content}`
+			return content
+		}
+	
+	
+	
 	// 更新会话列表
 	updateChatList(message, isSend = true) {
 		// 获取本地存储会话列表
@@ -254,9 +285,9 @@ class chat {
 			name = isSend ? message.receiverName : message.senderName
 		} else { //群聊
 			isCurrentChat = this.TO && (this.TO.id === message.receiverId)
-			id=message.receiverId
-			avatar =  message.receiverAvatar
-			name =  message.receiverName
+			id = message.receiverId
+			avatar = message.receiverAvatar
+			name = message.receiverName
 		}
 
 		// 判断会话是否存在
@@ -264,7 +295,8 @@ class chat {
 			return item.chat_type === message.chat_type && item.id === id
 		})
 		// 最后一条消息展现senderName
-		let data = isSend ? message.content : `${message.senderName}: ${message.content}`
+		//let data = isSend ? message.content : `${message.senderName}: ${message.content}`
+		let data=this.formatChatItemData(message,isSend)
 		// 未读数是否 + 1
 		let noreadnum = (isSend || isCurrentChat) ? 0 : 1
 		// let noreadnum = (isSend && isCurrentChat) ? 0 : 1
@@ -288,10 +320,11 @@ class chat {
 			}
 			// 群聊
 			if (message.chat_type === 'group') {
-				// chatItem.shownickname = true
-				// chatItem.name = name
+				chatItem.shownickname = true
+				chatItem.name = message.receiverName
 				chatItem = {
 					...chatItem,
+
 					user_id: message.owner_id, // 群管理员id
 					remark: "", // 群公告
 					invite_confirm: 1, // 邀请确认
@@ -300,8 +333,9 @@ class chat {
 			list.unshift(chatItem)
 		} else { //存在，更新会话
 			let item = list[index]
-			// 
+			// 更新该会话的最后一条消息
 			item.update_time = (new Date()).getTime()
+			item.name = message.receiverName
 			item.data = data
 			item.type = message.messageType
 			// 未读数加一

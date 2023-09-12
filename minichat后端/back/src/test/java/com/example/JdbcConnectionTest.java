@@ -8,7 +8,7 @@ public class JdbcConnectionTest {
     public static void main(String[] args) {
         String url = "jdbc:mysql://localhost:3306/dbchat?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&useSSL=false";
         String username = "root";
-        String password = "w112112808";
+        String password = "";
 
         try {
             // 加载驱动程序

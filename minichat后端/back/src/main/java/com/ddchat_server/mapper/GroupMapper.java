@@ -19,9 +19,13 @@ public interface GroupMapper extends BaseMapper<Group> {
     List<JSONObject> getList(String id);
 
     //获取用户成员的数据
-    @Select("SELECT u.id,u.avatar,u.nickname " +
-            "from db_user u,db_member m " +
-            "where m.is_deleted=0 and u.id=m.member_id and m.group_id=#{id} " +
+//    @Select("SELECT u.id,u.avatar,u.nickname,g.owner_id" +
+//            "from db_user u,db_member m,db_group g" +
+//            "where m.is_deleted=0 and u.id=m.member_id and g.id=m.group_id and m.group_id=#{id} " +
+//            "ORDER BY m.create_time ASC ")
+    @Select("SELECT u.id,u.avatar,u.nickname,g.owner_id\n" +
+            "FROM db_user u,db_member m,db_group g\n" +
+            "WHERE m.is_deleted=0 AND u.id=m.member_id AND g.id=m.group_id AND m.group_id=#{id}\n" +
             "ORDER BY m.create_time ASC ")
     List<JSONObject> getMembers(String id);
 

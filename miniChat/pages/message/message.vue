@@ -43,14 +43,14 @@
 					<template v-if="item.istop">
 						<uni-swipe-action-item :right-options="options1" @click="swipeClick($event, item,index)">
 							<msg-list :item="item" :index="index" :class="{'top-message': item.istop}"
-								@click="openChat(item.id,item.sessionId,item.chat_type)"></msg-list>
+								@click="item.chat_type === 'user' ? openChat(item.id, item.sessionId, item.chat_type) : openGroupChat(item.id,item.name,item.avatar,item.chat_type)"></msg-list>
 
 						</uni-swipe-action-item>
 					</template>
 					<template v-else>
 						<uni-swipe-action-item :right-options=" options" @click="swipeClick($event, item,index)">
 							<msg-list :item="item" :index="index" :class="{'top-message': item.istop}"
-								@click="openChat(item.id,item.sessionId,item.chat_type)"></msg-list>
+								@click="item.chat_type === 'user' ? openChat(item.id, item.sessionId, item.chat_type) : openGroupChat(item.id,item.name,item.avatar,item.chat_type)"></msg-list>
 
 						</uni-swipe-action-item>
 					</template>
@@ -273,7 +273,21 @@
 				})
 				this.chat.readChatItem(friend_id, chat_type)
 			},
+			openGroupChat(groupId, groupName,avatar, chat_type) {
+				uni.navigateTo({
+					// 	url: '/pages/chat/chat?group_id=' + groupId + '&group_name=' + groupName + '&type=group',
+					url: '/pages/chat/chat?params=' + encodeURIComponent(JSON.stringify({
+						group_id: groupId,
+						group_name: groupName,
+						avatar: avatar,
+						type: chat_type
 
+
+					}))
+
+				})
+				this.chat.readChatItem(groupId, chat_type)
+			},
 
 
 			// console.log("点击了清除消息");
@@ -294,6 +308,7 @@
 					content
 				} = e;
 				console.log("点击content为", content)
+				console.log("点击item为", item)
 				if (content.text === '删除') {
 					uni.showModal({
 						title: '提示',
@@ -311,7 +326,8 @@
 					uni.setStorageSync('messages', this.messages)
 
 				} else if (content.text === '标记为已读') {
-					item.noread = 0;
+					//item.noread = 0;
+					this.chat.readChatItem(groupId, chat_type)
 				}
 			},
 		}

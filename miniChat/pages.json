@@ -121,6 +121,25 @@
             }
             
         }
+        ,{
+            "path" : "pages/chat/groupchat-set/groupchat-set",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "群聊设置",
+				"navigationBarBackgroundColor": "#ffffff",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/mail/mail",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
     ],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
